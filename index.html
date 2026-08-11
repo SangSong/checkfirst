@@ -5,138 +5,284 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Check First</title>
 <style>
-  :root {
-    --ink: #1c1c1c;
-    --mut: #6b6b6b;
-    --line: #d8d4cc;
-    --bg: #faf9f7;
-    --acc: #8a3b2e;
-    --ok: #2f5d50;
+  :root{
+    --ink:#1c1c1c; --mut:#6b6b6b; --line:#ddd9d1; --bg:#faf9f7;
+    --risk:#8a3b2e; --riskbg:#fbf1ee;
+    --unk:#9a7418;  --unkbg:#fdf8ec;
+    --norm:#2f5d50; --normbg:#eef4f1;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    padding: 24px 18px 48px;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
-    line-height: 1.6;
-    max-width: 560px;
-    margin-left: auto;
-    margin-right: auto;
+  *{box-sizing:border-box}
+  body{
+    margin:0 auto; padding:22px 18px 56px; max-width:600px;
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+    line-height:1.62; font-size:15px;
   }
-  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { color: var(--mut); font-size: 14px; margin: 0 0 28px; }
-  .card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px;
-    margin-bottom: 16px;
+  header{margin-bottom:18px}
+  h1{font-size:25px; margin:0 0 3px; letter-spacing:-.01em}
+  .tag{color:var(--mut); font-size:13.5px; margin:0}
+  .langs{display:flex; gap:6px; margin:16px 0 18px; flex-wrap:wrap}
+  .langs button{
+    flex:1 1 auto; padding:8px 4px; font-size:13px; border:1px solid var(--line);
+    background:#fff; color:var(--mut); border-radius:7px; cursor:pointer;
   }
-  .label { font-size: 13px; color: var(--mut); margin-bottom: 8px; }
-  textarea {
-    width: 100%;
-    min-height: 96px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font: inherit;
-    font-size: 15px;
-    resize: vertical;
-    background: #fff;
-    color: var(--ink);
+  .langs button[aria-pressed="true"]{
+    background:var(--ink); color:#fff; border-color:var(--ink); font-weight:600;
   }
-  button {
-    margin-top: 12px;
-    width: 100%;
-    padding: 13px;
-    border: 0;
-    border-radius: 8px;
-    background: var(--acc);
-    color: #fff;
-    font: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
+  .card{background:#fff; border:1px solid var(--line); border-radius:11px; padding:17px; margin-bottom:14px}
+  label{display:block; font-size:13.5px; color:var(--mut); margin-bottom:8px}
+  textarea{
+    width:100%; min-height:128px; padding:12px; border:1px solid var(--line);
+    border-radius:8px; font:inherit; font-size:15px; resize:vertical; color:var(--ink);
   }
-  button:disabled { opacity: 0.5; cursor: default; }
-  #out {
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 15px;
-    margin: 0;
+  .samples{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap}
+  .samples button{
+    padding:6px 11px; font-size:12.5px; border:1px solid var(--line);
+    background:var(--bg); color:var(--mut); border-radius:20px; cursor:pointer;
   }
-  .muted { color: var(--mut); }
-  .ok { color: var(--ok); font-weight: 600; }
-  .err { color: var(--acc); font-weight: 600; }
-  footer {
-    margin-top: 28px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-    font-size: 12px;
-    color: var(--mut);
+  #go{
+    margin-top:13px; width:100%; padding:14px; border:0; border-radius:8px;
+    background:var(--ink); color:#fff; font:inherit; font-size:15.5px; font-weight:600; cursor:pointer;
   }
+  #go:disabled{opacity:.45; cursor:default}
+  .verdict{border-radius:11px; padding:16px 17px; margin-bottom:14px; border:1px solid}
+  .verdict h2{margin:0 0 6px; font-size:18.5px}
+  .verdict p{margin:0; font-size:14.5px}
+  .v-RISK{background:var(--riskbg); border-color:var(--risk)} .v-RISK h2{color:var(--risk)}
+  .v-UNKNOWN{background:var(--unkbg); border-color:var(--unk)} .v-UNKNOWN h2{color:var(--unk)}
+  .v-NORMAL{background:var(--normbg); border-color:var(--norm)} .v-NORMAL h2{color:var(--norm)}
+  h3{font-size:14px; margin:0 0 10px; color:var(--mut); font-weight:600}
+  ul,ol{margin:0; padding-left:19px}
+  li{margin-bottom:9px}
+  li:last-child{margin-bottom:0}
+  .why{display:block; color:var(--mut); font-size:13.5px; margin-top:2px}
+  .tel{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line)}
+  .tel:last-child{border-bottom:0}
+  .tel a{color:var(--ink); font-weight:600; text-decoration:none; white-space:nowrap}
+  .msg{color:var(--mut); margin:0}
+  .msg.bad{color:var(--risk)}
+  footer{margin-top:26px; padding-top:15px; border-top:1px solid var(--line); font-size:12px; color:var(--mut)}
+  footer p{margin:0 0 6px}
 </style>
 </head>
 <body>
 
-<h1>Check First</h1>
-<p class="sub">배포 점검용 화면입니다. 기능은 아직 붙지 않았습니다.</p>
+<header>
+  <h1>Check First</h1>
+  <p class="tag" id="tag">응답하기 전에 먼저 확인하세요</p>
+</header>
 
-<div class="card">
-  <div class="label">아무 문장이나 입력한 뒤 눌러보세요</div>
-  <textarea id="q" placeholder="예: 안녕하세요"></textarea>
-  <button id="go">연결 확인</button>
+<div class="langs" id="langs">
+  <button data-l="ko" aria-pressed="true">한국어</button>
+  <button data-l="en" aria-pressed="false">English</button>
+  <button data-l="vi" aria-pressed="false">Tieng Viet</button>
+  <button data-l="zh" aria-pressed="false">简体中文</button>
 </div>
 
 <div class="card">
-  <div class="label">결과</div>
-  <p id="out" class="muted">아직 실행하지 않았습니다.</p>
+  <label id="lbl">받은 문자나 제안 내용을 그대로 붙여넣으세요</label>
+  <textarea id="q"></textarea>
+  <div class="samples" id="samples"></div>
+  <button id="go">확인하기</button>
 </div>
 
-<footer>
-  이 화면은 서버 연결이 정상인지 확인하기 위한 임시 페이지입니다.
-  입력한 내용은 저장되지 않습니다.
-</footer>
+<div id="out"></div>
+
+<footer id="foot"></footer>
 
 <script>
-  const btn = document.getElementById('go');
-  const out = document.getElementById('out');
+const T = {
+  ko:{
+    tag:"응답하기 전에 먼저 확인하세요",
+    lbl:"받은 문자나 제안 내용을 그대로 붙여넣으세요",
+    go:"확인하기", loading:"확인하는 중입니다...",
+    samples:["예시 1","예시 2","예시 3"],
+    sig:"확인된 내용", unk:"확인되지 않은 것", act:"지금 할 일", con:"연락처",
+    short:"조금 더 자세히 적어 주세요. 받은 문자 전체를 붙여넣으면 더 정확합니다.",
+    fail:"확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+    foot:["이 결과는 참고용이며 사기 여부를 확정하지 않습니다.",
+          "법률 자문이나 금융상품 권유가 아니며, 체류자격에 관한 공식 판단도 아닙니다.",
+          "입력한 내용은 저장하지 않으며 처리 후 사라집니다.",
+          "실제 신고와 피해 구제는 공식 기관을 통해야 합니다. 이미 송금했다면 지체 없이 112 또는 1332에 연락하세요."]
+  },
+  en:{
+    tag:"Check before you respond",
+    lbl:"Paste the message or offer you received",
+    go:"Check", loading:"Checking...",
+    samples:["Sample 1","Sample 2","Sample 3"],
+    sig:"What was found", unk:"What could not be confirmed", act:"What to do now", con:"Contacts",
+    short:"Please write a bit more. Pasting the full message gives a better result.",
+    fail:"Could not complete the check. Please try again shortly.",
+    foot:["This result is for reference only and does not confirm fraud.",
+          "It is not legal advice, financial product advice, or an official decision on visa status.",
+          "What you type is not stored and disappears after processing.",
+          "Report through official channels. If you already sent money, call 112 or 1332 immediately."]
+  },
+  vi:{
+    tag:"Kiem tra truoc khi tra loi",
+    lbl:"Dan tin nhan hoac loi de nghi ban da nhan",
+    go:"Kiem tra", loading:"Dang kiem tra...",
+    samples:["Vi du 1","Vi du 2","Vi du 3"],
+    sig:"Dieu da xac nhan", unk:"Dieu chua xac nhan", act:"Viec can lam ngay", con:"Lien he",
+    short:"Vui long viet chi tiet hon. Dan toan bo tin nhan se chinh xac hon.",
+    fail:"Khong the kiem tra. Vui long thu lai sau.",
+    foot:["Ket qua nay chi de tham khao va khong khang dinh day la lua dao.",
+          "Day khong phai tu van phap ly, tu van san pham tai chinh hay quyet dinh chinh thuc ve tu cach luu tru.",
+          "Noi dung ban nhap khong duoc luu va se bien mat sau khi xu ly.",
+          "Hay bao cao qua co quan chinh thuc. Neu da chuyen tien, goi ngay 112 hoac 1332."]
+  },
+  zh:{
+    tag:"回复之前先确认",
+    lbl:"请粘贴您收到的短信或提议内容",
+    go:"确认", loading:"确认中...",
+    samples:["示例 1","示例 2","示例 3"],
+    sig:"已确认的内容", unk:"无法确认的内容", act:"现在该做的事", con:"联系方式",
+    short:"请写得更详细一些。粘贴完整短信会更准确。",
+    fail:"无法完成确认，请稍后再试。",
+    foot:["本结果仅供参考，并不确定是否为诈骗。",
+          "这不是法律咨询、金融产品推荐，也不是关于居留资格的官方判断。",
+          "您输入的内容不会被保存，处理后即消失。",
+          "请通过官方机构举报。如果已经汇款，请立即拨打 112 或 1332。"]
+  }
+};
 
-  btn.addEventListener('click', async () => {
-    const text = document.getElementById('q').value.trim();
-    if (!text) {
-      out.className = 'muted';
-      out.textContent = '문장을 먼저 입력해 주세요.';
-      return;
-    }
-    btn.disabled = true;
-    out.className = 'muted';
-    out.textContent = '확인 중입니다...';
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text })
-      });
-      const data = await res.json();
-      if (res.ok && data.text) {
-        out.className = '';
-        out.innerHTML = '<span class="ok">연결 정상</span>\n\n' +
-          data.text.replace(/</g, '&lt;');
-      } else {
-        out.className = '';
-        out.innerHTML = '<span class="err">오류</span>\n\n' +
-          (data.error || '알 수 없는 오류').replace(/</g, '&lt;');
-      }
-    } catch (e) {
-      out.className = '';
-      out.innerHTML = '<span class="err">서버에 닿지 못했습니다</span>\n\n' + e;
-    } finally {
-      btn.disabled = false;
-    }
+const V = {
+  ko:{RISK:"확인된 위험 신호",UNKNOWN:"확인 불가",NORMAL:"정상 범위"},
+  en:{RISK:"Risk signals found",UNKNOWN:"Cannot determine",NORMAL:"No known risk signals"},
+  vi:{RISK:"Phat hien dau hieu rui ro",UNKNOWN:"Khong the xac dinh",NORMAL:"Khong thay dau hieu rui ro"},
+  zh:{RISK:"发现风险信号",UNKNOWN:"无法判断",NORMAL:"未发现风险信号"}
+};
+
+const SAMPLES = [
+  "[국제발신] 검찰청입니다. 귀하 명의 계좌가 대포통장 범죄에 연루되어 조사가 필요합니다. 아래 링크로 접속해 안전계좌로 자산을 이전하십시오.",
+  "형, 나 급한데 통장 하나만 빌려줄 수 있어? 환전 일인데 돈만 잠깐 들어왔다 나가는 거야. 하루에 30만원 줄게.",
+  "[Web발신] 고객님의 8월 카드 이용대금 명세서가 발행되었습니다. 자세한 내용은 앱에서 확인하실 수 있습니다."
+];
+
+let lang = "ko";
+
+function t(){ return T[lang]; }
+
+function paint(){
+  const x = t();
+  document.getElementById("tag").textContent = x.tag;
+  document.getElementById("lbl").textContent = x.lbl;
+  document.getElementById("go").textContent = x.go;
+  const s = document.getElementById("samples");
+  s.innerHTML = "";
+  x.samples.forEach(function(label,i){
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.onclick = function(){ document.getElementById("q").value = SAMPLES[i]; };
+    s.appendChild(b);
   });
+  const f = document.getElementById("foot");
+  f.innerHTML = "";
+  x.foot.forEach(function(line){
+    const p = document.createElement("p");
+    p.textContent = line;
+    f.appendChild(p);
+  });
+}
+
+document.getElementById("langs").addEventListener("click", function(e){
+  const b = e.target.closest("button");
+  if(!b) return;
+  lang = b.dataset.l;
+  Array.prototype.forEach.call(document.querySelectorAll("#langs button"), function(x){
+    x.setAttribute("aria-pressed", x === b ? "true" : "false");
+  });
+  document.getElementById("out").innerHTML = "";
+  paint();
+});
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/[<>&]/g, function(c){
+    return {"<":"&lt;",">":"&gt;","&":"&amp;"}[c];
+  });
+}
+
+function note(text, bad){
+  document.getElementById("out").innerHTML =
+    '<div class="card"><p class="msg' + (bad ? " bad" : "") + '">' + esc(text) + '</p></div>';
+}
+
+function render(d){
+  const x = t();
+  let h = "";
+
+  h += '<div class="verdict v-' + esc(d.verdict) + '">'
+     + '<h2>' + esc((V[lang] || V.ko)[d.verdict] || d.verdict) + '</h2>'
+     + '<p>' + esc(d.headline || d.summary || "") + '</p></div>';
+
+  if(d.summary && d.headline && d.summary !== d.headline){
+    h += '<div class="card"><p class="msg">' + esc(d.summary) + '</p></div>';
+  }
+
+  if(d.signals && d.signals.length){
+    h += '<div class="card"><h3>' + esc(x.sig) + '</h3><ul>';
+    d.signals.forEach(function(s){
+      h += '<li>' + esc(s.point) + '<span class="why">' + esc(s.why) + '</span></li>';
+    });
+    h += '</ul></div>';
+  }
+
+  if(d.unknowns && d.unknowns.length){
+    h += '<div class="card"><h3>' + esc(x.unk) + '</h3><ul>';
+    d.unknowns.forEach(function(u){ h += '<li>' + esc(u) + '</li>'; });
+    h += '</ul></div>';
+  }
+
+  if(d.actions && d.actions.length){
+    h += '<div class="card"><h3>' + esc(x.act) + '</h3><ol>';
+    d.actions.forEach(function(a){ h += '<li>' + esc(a) + '</li>'; });
+    h += '</ol></div>';
+  }
+
+  if(d.contacts && d.contacts.length){
+    h += '<div class="card"><h3>' + esc(x.con) + '</h3>';
+    d.contacts.forEach(function(c){
+      const num = String(c.number || "").replace(/[^0-9-]/g, "");
+      h += '<div class="tel"><span>' + esc(c.name) + '</span>'
+         + '<a href="tel:' + esc(num) + '">' + esc(c.number) + '</a></div>';
+    });
+    h += '</div>';
+  }
+
+  document.getElementById("out").innerHTML = h;
+}
+
+document.getElementById("go").addEventListener("click", async function(){
+  const x = t();
+  const text = document.getElementById("q").value.trim();
+  const btn = document.getElementById("go");
+
+  if(text.length < 5){ note(x.short); return; }
+
+  btn.disabled = true;
+  btn.textContent = x.loading;
+  note(x.loading);
+
+  try{
+    const res = await fetch("/api/check", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ text: text, lang: lang })
+    });
+    const d = await res.json();
+
+    if(d.verdict === "INVALID"){ note(x.short); }
+    else if(!res.ok || d.error){ note(x.fail, true); }
+    else { render(d); }
+  }catch(e){
+    note(x.fail, true);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = x.go;
+  }
+});
+
+paint();
 </script>
 
 </body>
