@@ -7,7 +7,7 @@ import os
 import urllib.request
 import urllib.error
 
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.6-flash"
 ENDPOINT = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     + MODEL
