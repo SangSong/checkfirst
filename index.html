@@ -26,12 +26,14 @@
     background:#fff; color:var(--mut); border-radius:7px; cursor:pointer;
   }
   .langs button[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink); font-weight:600}
-  .tabs{display:flex; gap:6px; margin-bottom:16px}
+  .tabs{display:flex; gap:5px; margin-bottom:16px}
   .tabs button{
-    flex:1; padding:11px 6px; font-size:13.5px; border:1px solid var(--line);
+    flex:1; padding:11px 5px; font-size:12.5px; border:1px solid var(--line);
     background:#fff; color:var(--mut); border-radius:8px; cursor:pointer; line-height:1.35;
   }
   .tabs button[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink); font-weight:600}
+  .tabs button[data-t="sos"]{color:var(--risk)}
+  .tabs button[data-t="sos"][aria-pressed="true"]{background:var(--risk); color:#fff; border-color:var(--risk)}
   .card{background:#fff; border:1px solid var(--line); border-radius:11px; padding:17px; margin-bottom:14px}
   label{display:block; font-size:13.5px; color:var(--mut); margin-bottom:9px}
   textarea{
@@ -56,12 +58,25 @@
     background:var(--ink); color:#fff; font:inherit; font-size:15.5px; font-weight:600; cursor:pointer;
   }
   .go:disabled{opacity:.45; cursor:default}
+  .sos{
+    display:block; background:var(--risk); color:#fff; border-radius:11px;
+    padding:16px 17px; margin-bottom:14px; text-decoration:none;
+  }
+  .sos strong{display:block; font-size:19px; margin-bottom:3px}
+  .sos span{font-size:13.5px; opacity:.92}
   .verdict{border-radius:11px; padding:16px 17px; margin-bottom:14px; border:1px solid}
   .verdict h2{margin:0 0 6px; font-size:18.5px}
   .verdict p{margin:0; font-size:14.5px}
-  .v-RISK{background:var(--riskbg); border-color:var(--risk)} .v-RISK h2{color:var(--risk)}
-  .v-UNKNOWN{background:var(--unkbg); border-color:var(--unk)} .v-UNKNOWN h2{color:var(--unk)}
-  .v-NORMAL{background:var(--normbg); border-color:var(--norm)} .v-NORMAL h2{color:var(--norm)}
+  .v-RISK,.v-NO{background:var(--riskbg); border-color:var(--risk)}
+  .v-RISK h2,.v-NO h2{color:var(--risk)}
+  .v-UNKNOWN,.v-LIMITED{background:var(--unkbg); border-color:var(--unk)}
+  .v-UNKNOWN h2,.v-LIMITED h2{color:var(--unk)}
+  .v-NORMAL,.v-YES,.v-NA{background:var(--normbg); border-color:var(--norm)}
+  .v-NORMAL h2,.v-YES h2,.v-NA h2{color:var(--norm)}
+  .due{background:var(--unkbg); border:1px solid var(--unk); border-radius:11px; padding:15px 17px; margin-bottom:14px}
+  .due h3{color:var(--unk); margin:0 0 6px}
+  .due p{margin:0; font-size:14.5px}
+  .due .date{font-weight:700; font-size:16px; color:var(--unk); display:block; margin-top:7px}
   h3{font-size:14px; margin:0 0 10px; color:var(--mut); font-weight:600}
   ul,ol{margin:0; padding-left:19px}
   li{margin-bottom:9px} li:last-child{margin-bottom:0}
@@ -95,6 +110,7 @@
 <div class="tabs" id="tabs">
   <button data-t="msg" aria-pressed="true" id="tab-msg"></button>
   <button data-t="acc" aria-pressed="false" id="tab-acc"></button>
+  <button data-t="sos" aria-pressed="false" id="tab-sos"></button>
 </div>
 
 <div id="pane-msg">
@@ -122,6 +138,26 @@
   </div>
 </div>
 
+<div id="pane-sos" class="hide">
+  <a class="sos" href="tel:112">
+    <strong id="sos-t"></strong>
+    <span id="sos-s"></span>
+  </a>
+  <div class="card">
+    <label id="lbl-kind"></label>
+    <div class="opts" id="kinds"></div>
+  </div>
+  <div class="card">
+    <label id="lbl-when"></label>
+    <div class="opts" id="whens"></div>
+  </div>
+  <div class="card">
+    <label id="lbl-extra2"></label>
+    <textarea id="extra2" class="small"></textarea>
+    <button class="go" id="go-sos"></button>
+  </div>
+</div>
+
 <div id="out"></div>
 
 <footer id="foot"></footer>
@@ -130,20 +166,24 @@
 var T = {
 ko:{
   tag:"응답하기 전에 먼저 확인하세요",
-  tabMsg:"받은 문자 확인",
-  tabAcc:"계좌를 빌려달라는 부탁",
+  tabMsg:"받은 문자", tabAcc:"계좌 부탁", tabSos:"이미 당했어요",
   lblMsg:"받은 문자나 제안 내용을 그대로 붙여넣으세요",
-  lblCase:"지금 어떤 상황인가요",
-  lblWho:"누가 부탁했나요",
+  lblCase:"지금 어떤 상황인가요", lblWho:"누가 부탁했나요",
+  lblKind:"무슨 일이 있었나요", lblWhen:"언제 벌어졌나요",
   lblExtra:"더 알려주실 내용이 있으면 적어주세요 (선택)",
   go:"확인하기", loading:"확인하는 중입니다...",
   samples:["예시 1","예시 2","예시 3"],
+  sosT:"112로 지금 전화하기", sosS:"돈을 보냈다면 이것이 가장 급합니다. 24시간 열려 있습니다.",
   sig:"확인된 내용", unk:"확인되지 않은 것", act:"지금 할 일", con:"연락처",
   cons:"응하면 실제로 생기는 일", keep:"반드시 보관할 것",
-  needCase:"먼저 상황을 골라 주세요.",
+  now:"지금 당장 할 일", later:"며칠 안에 할 일", warn:"하지 말아야 할 것",
+  due:"놓치면 안 되는 기한", dueBy:"늦어도 이날까지",
+  needCase:"먼저 상황을 골라 주세요.", needKind:"무슨 일이 있었는지 먼저 골라 주세요.",
   short:"조금 더 자세히 적어 주세요. 받은 문자 전체를 붙여넣으면 더 정확합니다.",
   fail:"확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
   vRISK:"확인된 위험 신호", vUNKNOWN:"확인 불가", vNORMAL:"정상 범위",
+  vYES:"되찾을 수 있습니다", vLIMITED:"조건이 맞으면 가능합니다",
+  vNO:"계좌 정지로는 막기 어렵습니다", vNA:"아직 막을 수 있습니다",
   cases:{
     lend_account:"통장이나 카드를 빌려달라는 부탁을 받았다. 아직 넘기지 않았다.",
     already_lent:"이미 통장이나 카드, 비밀번호를 넘겼다.",
@@ -151,12 +191,19 @@ ko:{
     id_copy:"신분증이나 외국인등록증 사본을 보내달라고 한다.",
     money_moved:"내 계좌에 모르는 돈이 들어왔거나 그 돈을 옮겼다."
   },
-  whos:{
-    friend:"친구나 선배, 아는 사람",
-    online:"온라인에서 만난 사람",
-    job:"구인 광고나 아르바이트 모집",
-    unknown:"밝히기 어렵다"
+  whos:{friend:"친구나 선배, 아는 사람", online:"온라인에서 만난 사람",
+        job:"구인 광고나 아르바이트 모집", unknown:"밝히기 어렵다"},
+  kinds:{
+    transfer:"계좌이체로 돈을 보냈다",
+    cash:"직접 만나서 현금을 건넸다",
+    giftcard:"상품권이나 기프트카드 번호를 알려줬다",
+    crypto:"가상자산으로 보냈다",
+    overseas:"해외로 송금했다",
+    card:"카드 결제나 소액결제가 됐다",
+    info_only:"정보만 알려줬고 아직 돈은 나가지 않았다",
+    app:"링크를 눌렀거나 앱을 설치했다"
   },
+  whens:{just_now:"방금이다. 30분이 지나지 않았다", today:"오늘 안에 벌어졌다", days:"하루 이상 지났다"},
   foot:["이 결과는 참고용이며 사기 여부를 확정하지 않습니다.",
         "법률 자문이나 금융상품 권유가 아니며, 체류자격에 관한 공식 판단도 아닙니다.",
         "입력한 내용은 저장하지 않으며 처리 후 사라집니다.",
@@ -164,20 +211,24 @@ ko:{
 },
 en:{
   tag:"Check before you respond",
-  tabMsg:"Check a message",
-  tabAcc:"Someone asked for my account",
+  tabMsg:"A message", tabAcc:"My account", tabSos:"It already happened",
   lblMsg:"Paste the message or offer you received",
-  lblCase:"What is your situation right now?",
-  lblWho:"Who asked you?",
+  lblCase:"What is your situation right now?", lblWho:"Who asked you?",
+  lblKind:"What happened?", lblWhen:"When did it happen?",
   lblExtra:"Anything else you want to add (optional)",
   go:"Check", loading:"Checking...",
   samples:["Sample 1","Sample 2","Sample 3"],
+  sosT:"Call 112 now", sosS:"If you sent money, this is the most urgent thing. Open 24 hours.",
   sig:"What was found", unk:"What could not be confirmed", act:"What to do now", con:"Contacts",
   cons:"What actually happens if you agree", keep:"What you must keep",
-  needCase:"Please choose your situation first.",
+  now:"Do this right now", later:"Do this within days", warn:"Do not do this",
+  due:"A deadline you must not miss", dueBy:"No later than",
+  needCase:"Please choose your situation first.", needKind:"Please choose what happened first.",
   short:"Please write a bit more. Pasting the full message gives a better result.",
   fail:"Could not complete the check. Please try again shortly.",
   vRISK:"Risk signals found", vUNKNOWN:"Cannot determine", vNORMAL:"No known risk signals",
+  vYES:"Recovery is possible", vLIMITED:"Possible if conditions are met",
+  vNO:"Freezing an account will not stop this", vNA:"You can still prevent loss",
   cases:{
     lend_account:"Someone asked to borrow my bankbook or card. I have not handed it over yet.",
     already_lent:"I already handed over my bankbook, card, or password.",
@@ -185,12 +236,19 @@ en:{
     id_copy:"Someone asked me to send a copy of my ID or alien registration card.",
     money_moved:"Money I do not recognize arrived in my account, or I moved that money."
   },
-  whos:{
-    friend:"A friend, senior, or someone I know",
-    online:"Someone I met online",
-    job:"A job ad or part-time recruitment",
-    unknown:"I would rather not say"
+  whos:{friend:"A friend, senior, or someone I know", online:"Someone I met online",
+        job:"A job ad or part-time recruitment", unknown:"I would rather not say"},
+  kinds:{
+    transfer:"I sent money by bank transfer",
+    cash:"I met someone and handed over cash",
+    giftcard:"I gave away gift card or voucher numbers",
+    crypto:"I sent cryptocurrency",
+    overseas:"I sent money overseas",
+    card:"A card or mobile payment went through",
+    info_only:"I only gave information; no money has left yet",
+    app:"I clicked a link or installed an app"
   },
+  whens:{just_now:"Just now, less than 30 minutes ago", today:"Earlier today", days:"More than a day ago"},
   foot:["This result is for reference only and does not confirm fraud.",
         "It is not legal advice, financial product advice, or an official decision on visa status.",
         "What you type is not stored and disappears after processing.",
@@ -198,20 +256,24 @@ en:{
 },
 vi:{
   tag:"Kiem tra truoc khi tra loi",
-  tabMsg:"Kiem tra tin nhan",
-  tabAcc:"Co nguoi muon muon tai khoan",
+  tabMsg:"Tin nhan", tabAcc:"Tai khoan", tabSos:"Da xay ra roi",
   lblMsg:"Dan tin nhan hoac loi de nghi ban da nhan",
-  lblCase:"Ban dang o tinh huong nao?",
-  lblWho:"Ai da nho ban?",
+  lblCase:"Ban dang o tinh huong nao?", lblWho:"Ai da nho ban?",
+  lblKind:"Chuyen gi da xay ra?", lblWhen:"Xay ra khi nao?",
   lblExtra:"Neu co dieu gi muon noi them, hay viet vao day (khong bat buoc)",
   go:"Kiem tra", loading:"Dang kiem tra...",
   samples:["Vi du 1","Vi du 2","Vi du 3"],
+  sosT:"Goi 112 ngay bay gio", sosS:"Neu ban da chuyen tien, day la viec gap nhat. Mo 24 gio.",
   sig:"Dieu da xac nhan", unk:"Dieu chua xac nhan", act:"Viec can lam ngay", con:"Lien he",
   cons:"Dieu se that su xay ra neu ban dong y", keep:"Nhung thu phai giu lai",
-  needCase:"Vui long chon tinh huong truoc.",
+  now:"Lam ngay bay gio", later:"Lam trong vai ngay toi", warn:"Khong duoc lam",
+  due:"Han khong duoc bo lo", dueBy:"Cham nhat la ngay",
+  needCase:"Vui long chon tinh huong truoc.", needKind:"Vui long chon chuyen da xay ra truoc.",
   short:"Vui long viet chi tiet hon. Dan toan bo tin nhan se chinh xac hon.",
   fail:"Khong the kiem tra. Vui long thu lai sau.",
   vRISK:"Phat hien dau hieu rui ro", vUNKNOWN:"Khong the xac dinh", vNORMAL:"Khong thay dau hieu rui ro",
+  vYES:"Co the lay lai duoc", vLIMITED:"Co the neu du dieu kien",
+  vNO:"Phong toa tai khoan khong ngan duoc viec nay", vNA:"Ban van con kip ngan chan",
   cases:{
     lend_account:"Co nguoi hoi muon so tiet kiem hoac the cua toi. Toi chua dua.",
     already_lent:"Toi da dua so tiet kiem, the hoac mat khau cho nguoi khac.",
@@ -219,12 +281,19 @@ vi:{
     id_copy:"Co nguoi yeu cau toi gui ban sao giay to tuy than hoac the dang ky nguoi nuoc ngoai.",
     money_moved:"Co khoan tien la vao tai khoan cua toi, hoac toi da chuyen khoan tien do."
   },
-  whos:{
-    friend:"Ban be, dan anh hoac nguoi quen",
-    online:"Nguoi toi gap tren mang",
-    job:"Quang cao tuyen dung hoac viec lam them",
-    unknown:"Toi khong muon noi ro"
+  whos:{friend:"Ban be, dan anh hoac nguoi quen", online:"Nguoi toi gap tren mang",
+        job:"Quang cao tuyen dung hoac viec lam them", unknown:"Toi khong muon noi ro"},
+  kinds:{
+    transfer:"Toi da chuyen khoan tien",
+    cash:"Toi da gap va dua tien mat truc tiep",
+    giftcard:"Toi da cho so the qua tang hoac phieu mua hang",
+    crypto:"Toi da gui bang tien ma hoa",
+    overseas:"Toi da chuyen tien ra nuoc ngoai",
+    card:"Da co giao dich the hoac thanh toan qua dien thoai",
+    info_only:"Toi chi cung cap thong tin, tien chua bi mat",
+    app:"Toi da bam vao duong link hoac cai dat ung dung"
   },
+  whens:{just_now:"Vua moi, chua den 30 phut", today:"Trong hom nay", days:"Da hon mot ngay"},
   foot:["Ket qua nay chi de tham khao va khong khang dinh day la lua dao.",
         "Day khong phai tu van phap ly, tu van san pham tai chinh hay quyet dinh chinh thuc ve tu cach luu tru.",
         "Noi dung ban nhap khong duoc luu va se bien mat sau khi xu ly.",
@@ -232,20 +301,24 @@ vi:{
 },
 zh:{
   tag:"回复之前先确认",
-  tabMsg:"确认收到的短信",
-  tabAcc:"有人要借我的账户",
+  tabMsg:"短信", tabAcc:"账户", tabSos:"已经发生了",
   lblMsg:"请粘贴您收到的短信或提议内容",
-  lblCase:"您现在是什么情况？",
-  lblWho:"是谁拜托您的？",
+  lblCase:"您现在是什么情况？", lblWho:"是谁拜托您的？",
+  lblKind:"发生了什么事？", lblWhen:"什么时候发生的？",
   lblExtra:"如果还有想补充的内容，请写在这里（选填）",
   go:"确认", loading:"确认中...",
   samples:["示例 1","示例 2","示例 3"],
+  sosT:"立即拨打 112", sosS:"如果您已经汇款，这是最紧急的事。24小时开放。",
   sig:"已确认的内容", unk:"无法确认的内容", act:"现在该做的事", con:"联系方式",
   cons:"如果答应会真正发生的事", keep:"必须保留的东西",
-  needCase:"请先选择您的情况。",
+  now:"现在立刻要做的事", later:"几天内要做的事", warn:"绝对不能做的事",
+  due:"绝不能错过的期限", dueBy:"最晚到这一天",
+  needCase:"请先选择您的情况。", needKind:"请先选择发生了什么事。",
   short:"请写得更详细一些。粘贴完整短信会更准确。",
   fail:"无法完成确认，请稍后再试。",
   vRISK:"发现风险信号", vUNKNOWN:"无法判断", vNORMAL:"未发现风险信号",
+  vYES:"有可能追回", vLIMITED:"符合条件时可能追回",
+  vNO:"冻结账户无法阻止这种情况", vNA:"现在阻止还来得及",
   cases:{
     lend_account:"有人要借我的存折或银行卡。我还没有交出去。",
     already_lent:"我已经把存折、银行卡或密码交给别人了。",
@@ -253,12 +326,19 @@ zh:{
     id_copy:"有人要我发送身份证或外国人登录证的复印件。",
     money_moved:"我的账户收到了不明来源的钱，或者我转走了那笔钱。"
   },
-  whos:{
-    friend:"朋友、前辈或熟人",
-    online:"在网上认识的人",
-    job:"招聘广告或兼职招募",
-    unknown:"不方便说明"
+  whos:{friend:"朋友、前辈或熟人", online:"在网上认识的人",
+        job:"招聘广告或兼职招募", unknown:"不方便说明"},
+  kinds:{
+    transfer:"我通过银行转账汇了钱",
+    cash:"我当面把现金交给了对方",
+    giftcard:"我告诉了对方购物卡或礼品卡号码",
+    crypto:"我用虚拟货币转出了",
+    overseas:"我汇款到了国外",
+    card:"发生了刷卡或手机小额支付",
+    info_only:"我只提供了信息，钱还没有转出",
+    app:"我点了链接或安装了应用"
   },
+  whens:{just_now:"就在刚才，还不到30分钟", today:"今天之内", days:"已经过了一天以上"},
   foot:["本结果仅供参考，并不确定是否为诈骗。",
         "这不是法律咨询、金融产品推荐，也不是关于居留资格的官方判断。",
         "您输入的内容不会被保存，处理后即消失。",
@@ -268,6 +348,8 @@ zh:{
 
 var CASE_KEYS = ["lend_account","already_lent","cash_job","id_copy","money_moved"];
 var WHO_KEYS  = ["friend","online","job","unknown"];
+var KIND_KEYS = ["transfer","cash","giftcard","crypto","overseas","card","info_only","app"];
+var WHEN_KEYS = ["just_now","today","days"];
 
 var SAMPLES = [
   "[국제발신] 검찰청입니다. 귀하 명의 계좌가 대포통장 범죄에 연루되어 조사가 필요합니다. 아래 링크로 접속해 안전계좌로 자산을 이전하십시오.",
@@ -275,18 +357,31 @@ var SAMPLES = [
   "[Web발신] 고객님의 8월 카드 이용대금 명세서가 발행되었습니다. 자세한 내용은 앱에서 확인하실 수 있습니다."
 ];
 
-var lang = "ko";
-var tab = "msg";
-var pickedCase = null;
-var pickedWho = null;
+var lang = "ko", tab = "msg";
+var pickedCase = null, pickedWho = null, pickedKind = null, pickedWhen = null;
 
 function t(){ return T[lang]; }
 function $(id){ return document.getElementById(id); }
-
 function esc(s){
   return String(s == null ? "" : s).replace(/[<>&]/g, function(c){
     return {"<":"&lt;",">":"&gt;","&":"&amp;"}[c];
   });
+}
+
+// 영업일 세 번을 더한 날짜. 공휴일은 세지 않으므로 실제 기한보다 이르거나 같다.
+// 더 이른 날을 알려주는 쪽이 안전하다.
+function workdayAfter(n){
+  var d = new Date();
+  var added = 0;
+  while(added < n){
+    d.setDate(d.getDate() + 1);
+    var w = d.getDay();
+    if(w !== 0 && w !== 6) added++;
+  }
+  var mm = d.getMonth() + 1, dd = d.getDate();
+  if(lang === "ko") return d.getFullYear() + "년 " + mm + "월 " + dd + "일";
+  if(lang === "zh") return d.getFullYear() + "年" + mm + "月" + dd + "日";
+  return d.getFullYear() + "-" + (mm<10?"0":"") + mm + "-" + (dd<10?"0":"") + dd;
 }
 
 function buildOpts(holderId, keys, dict, picked, onPick){
@@ -306,12 +401,19 @@ function paint(){
   $("tag").textContent = x.tag;
   $("tab-msg").textContent = x.tabMsg;
   $("tab-acc").textContent = x.tabAcc;
+  $("tab-sos").textContent = x.tabSos;
   $("lbl-msg").textContent = x.lblMsg;
   $("lbl-case").textContent = x.lblCase;
   $("lbl-who").textContent = x.lblWho;
+  $("lbl-kind").textContent = x.lblKind;
+  $("lbl-when").textContent = x.lblWhen;
   $("lbl-extra").textContent = x.lblExtra;
+  $("lbl-extra2").textContent = x.lblExtra;
   $("go-msg").textContent = x.go;
   $("go-acc").textContent = x.go;
+  $("go-sos").textContent = x.go;
+  $("sos-t").textContent = x.sosT;
+  $("sos-s").textContent = x.sosS;
 
   var s = $("samples");
   s.innerHTML = "";
@@ -322,12 +424,10 @@ function paint(){
     s.appendChild(b);
   });
 
-  buildOpts("cases", CASE_KEYS, x.cases, pickedCase, function(k){
-    pickedCase = k; paint();
-  });
-  buildOpts("whos", WHO_KEYS, x.whos, pickedWho, function(k){
-    pickedWho = k; paint();
-  });
+  buildOpts("cases", CASE_KEYS, x.cases, pickedCase, function(k){ pickedCase = k; paint(); });
+  buildOpts("whos",  WHO_KEYS,  x.whos,  pickedWho,  function(k){ pickedWho  = k; paint(); });
+  buildOpts("kinds", KIND_KEYS, x.kinds, pickedKind, function(k){ pickedKind = k; paint(); });
+  buildOpts("whens", WHEN_KEYS, x.whens, pickedWhen, function(k){ pickedWhen = k; paint(); });
 
   var f = $("foot");
   f.innerHTML = "";
@@ -358,24 +458,21 @@ $("tabs").addEventListener("click", function(e){
   });
   $("pane-msg").className = tab === "msg" ? "" : "hide";
   $("pane-acc").className = tab === "acc" ? "" : "hide";
+  $("pane-sos").className = tab === "sos" ? "" : "hide";
   $("out").innerHTML = "";
 });
 
 function note(text, bad){
   $("out").innerHTML = '<div class="card"><p class="msg' + (bad ? " bad" : "") + '">' + esc(text) + '</p></div>';
 }
-
 function block(title, inner){
   return '<div class="card"><h3>' + esc(title) + '</h3>' + inner + '</div>';
 }
-
 function listOf(arr, ordered){
-  var tag = ordered ? "ol" : "ul";
-  var h = "<" + tag + ">";
+  var tag = ordered ? "ol" : "ul", h = "<" + tag + ">";
   arr.forEach(function(a){ h += "<li>" + esc(a) + "</li>"; });
   return h + "</" + tag + ">";
 }
-
 function contactsOf(arr){
   var h = "";
   arr.forEach(function(c){
@@ -388,13 +485,10 @@ function contactsOf(arr){
 
 function renderMsg(d){
   var x = t();
-  var label = x["v" + d.verdict] || d.verdict;
-  var h = '<div class="verdict v-' + esc(d.verdict) + '"><h2>' + esc(label) + '</h2>'
+  var h = '<div class="verdict v-' + esc(d.verdict) + '"><h2>' + esc(x["v" + d.verdict] || d.verdict) + '</h2>'
         + '<p>' + esc(d.headline || d.summary || "") + '</p></div>';
-
-  if(d.summary && d.headline && d.summary !== d.headline){
+  if(d.summary && d.headline && d.summary !== d.headline)
     h += '<div class="card"><p class="msg">' + esc(d.summary) + '</p></div>';
-  }
   if(d.signals && d.signals.length){
     var inner = "<ul>";
     d.signals.forEach(function(s){
@@ -405,7 +499,6 @@ function renderMsg(d){
   if(d.unknowns && d.unknowns.length) h += block(x.unk, listOf(d.unknowns, false));
   if(d.actions && d.actions.length)   h += block(x.act, listOf(d.actions, true));
   if(d.contacts && d.contacts.length) h += block(x.con, contactsOf(d.contacts));
-
   $("out").innerHTML = h;
 }
 
@@ -413,9 +506,7 @@ function renderAcc(d){
   var x = t();
   var h = '<div class="verdict v-RISK"><h2>' + esc(x.vRISK) + '</h2>'
         + '<p>' + esc(d.headline || "") + '</p></div>';
-
   if(d.summary) h += '<div class="card"><p class="msg">' + esc(d.summary) + '</p></div>';
-
   if(d.consequences && d.consequences.length){
     var inner = '<dl class="cons">';
     d.consequences.forEach(function(c){
@@ -426,7 +517,24 @@ function renderAcc(d){
   if(d.actions && d.actions.length)   h += block(x.act, listOf(d.actions, true));
   if(d.keep && d.keep.length)         h += block(x.keep, listOf(d.keep, false));
   if(d.contacts && d.contacts.length) h += block(x.con, contactsOf(d.contacts));
+  $("out").innerHTML = h;
+}
 
+function renderSos(d){
+  var x = t();
+  var r = d.recoverable || "LIMITED";
+  var h = '<div class="verdict v-' + esc(r) + '"><h2>' + esc(x["v" + r] || "") + '</h2>'
+        + '<p>' + esc(d.headline || "") + '</p></div>';
+  if(d.summary) h += '<div class="card"><p class="msg">' + esc(d.summary) + '</p></div>';
+  if(d.now && d.now.length) h += block(x.now, listOf(d.now, true));
+  if(d.deadline && d.deadline.applies){
+    h += '<div class="due"><h3>' + esc(x.due) + '</h3><p>' + esc(d.deadline.text)
+       + '<span class="date">' + esc(x.dueBy) + " " + esc(workdayAfter(3)) + '</span></p></div>';
+  }
+  if(d.later && d.later.length)       h += block(x.later, listOf(d.later, true));
+  if(d.keep && d.keep.length)         h += block(x.keep, listOf(d.keep, false));
+  if(d.warn && d.warn.length)         h += block(x.warn, listOf(d.warn, false));
+  if(d.contacts && d.contacts.length) h += block(x.con, contactsOf(d.contacts));
   $("out").innerHTML = h;
 }
 
@@ -438,8 +546,7 @@ async function send(btn, url, body, onOk){
   note(x.loading);
   try{
     var res = await fetch(url, {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
+      method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify(body)
     });
     var d = await res.json();
@@ -455,8 +562,7 @@ async function send(btn, url, body, onOk){
 }
 
 $("go-msg").addEventListener("click", function(){
-  var x = t();
-  var text = $("q").value.trim();
+  var x = t(), text = $("q").value.trim();
   if(text.length < 5){ note(x.short); return; }
   send(this, "/api/check", { text:text, lang:lang }, renderMsg);
 });
@@ -467,6 +573,14 @@ $("go-acc").addEventListener("click", function(){
   send(this, "/api/account",
        { "case":pickedCase, who:pickedWho, lang:lang, extra:$("extra").value },
        renderAcc);
+});
+
+$("go-sos").addEventListener("click", function(){
+  var x = t();
+  if(!pickedKind){ note(x.needKind); return; }
+  send(this, "/api/emergency",
+       { kind:pickedKind, when:pickedWhen, lang:lang, extra:$("extra2").value },
+       renderSos);
 });
 
 paint();
