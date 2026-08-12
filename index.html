@@ -18,33 +18,44 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
     line-height:1.62; font-size:15px;
   }
-  header{margin-bottom:18px}
   h1{font-size:25px; margin:0 0 3px; letter-spacing:-.01em}
   .tag{color:var(--mut); font-size:13.5px; margin:0}
-  .langs{display:flex; gap:6px; margin:16px 0 18px; flex-wrap:wrap}
+  .langs{display:flex; gap:6px; margin:16px 0 14px; flex-wrap:wrap}
   .langs button{
     flex:1 1 auto; padding:8px 4px; font-size:13px; border:1px solid var(--line);
     background:#fff; color:var(--mut); border-radius:7px; cursor:pointer;
   }
-  .langs button[aria-pressed="true"]{
-    background:var(--ink); color:#fff; border-color:var(--ink); font-weight:600;
+  .langs button[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink); font-weight:600}
+  .tabs{display:flex; gap:6px; margin-bottom:16px}
+  .tabs button{
+    flex:1; padding:11px 6px; font-size:13.5px; border:1px solid var(--line);
+    background:#fff; color:var(--mut); border-radius:8px; cursor:pointer; line-height:1.35;
   }
+  .tabs button[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink); font-weight:600}
   .card{background:#fff; border:1px solid var(--line); border-radius:11px; padding:17px; margin-bottom:14px}
-  label{display:block; font-size:13.5px; color:var(--mut); margin-bottom:8px}
+  label{display:block; font-size:13.5px; color:var(--mut); margin-bottom:9px}
   textarea{
-    width:100%; min-height:128px; padding:12px; border:1px solid var(--line);
+    width:100%; min-height:120px; padding:12px; border:1px solid var(--line);
     border-radius:8px; font:inherit; font-size:15px; resize:vertical; color:var(--ink);
   }
+  textarea.small{min-height:64px}
   .samples{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap}
   .samples button{
     padding:6px 11px; font-size:12.5px; border:1px solid var(--line);
     background:var(--bg); color:var(--mut); border-radius:20px; cursor:pointer;
   }
-  #go{
+  .opts{display:flex; flex-direction:column; gap:7px}
+  .opts button{
+    text-align:left; padding:12px 13px; font:inherit; font-size:14px; line-height:1.45;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+    border-radius:8px; cursor:pointer;
+  }
+  .opts button[aria-pressed="true"]{border-color:var(--ink); border-width:2px; padding:11px 12px; font-weight:600}
+  .go{
     margin-top:13px; width:100%; padding:14px; border:0; border-radius:8px;
     background:var(--ink); color:#fff; font:inherit; font-size:15.5px; font-weight:600; cursor:pointer;
   }
-  #go:disabled{opacity:.45; cursor:default}
+  .go:disabled{opacity:.45; cursor:default}
   .verdict{border-radius:11px; padding:16px 17px; margin-bottom:14px; border:1px solid}
   .verdict h2{margin:0 0 6px; font-size:18.5px}
   .verdict p{margin:0; font-size:14.5px}
@@ -53,9 +64,12 @@
   .v-NORMAL{background:var(--normbg); border-color:var(--norm)} .v-NORMAL h2{color:var(--norm)}
   h3{font-size:14px; margin:0 0 10px; color:var(--mut); font-weight:600}
   ul,ol{margin:0; padding-left:19px}
-  li{margin-bottom:9px}
-  li:last-child{margin-bottom:0}
+  li{margin-bottom:9px} li:last-child{margin-bottom:0}
   .why{display:block; color:var(--mut); font-size:13.5px; margin-top:2px}
+  .cons{margin:0}
+  .cons dt{font-weight:600; font-size:14.5px; margin-bottom:3px}
+  .cons dd{margin:0 0 13px; color:var(--mut); font-size:14px}
+  .cons dd:last-child{margin-bottom:0}
   .tel{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line)}
   .tel:last-child{border-bottom:0}
   .tel a{color:var(--ink); font-weight:600; text-decoration:none; white-space:nowrap}
@@ -63,14 +77,13 @@
   .msg.bad{color:var(--risk)}
   footer{margin-top:26px; padding-top:15px; border-top:1px solid var(--line); font-size:12px; color:var(--mut)}
   footer p{margin:0 0 6px}
+  .hide{display:none}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Check First</h1>
-  <p class="tag" id="tag">응답하기 전에 먼저 확인하세요</p>
-</header>
+<h1>Check First</h1>
+<p class="tag" id="tag"></p>
 
 <div class="langs" id="langs">
   <button data-l="ko" aria-pressed="true">한국어</button>
@@ -79,11 +92,34 @@
   <button data-l="zh" aria-pressed="false">简体中文</button>
 </div>
 
-<div class="card">
-  <label id="lbl">받은 문자나 제안 내용을 그대로 붙여넣으세요</label>
-  <textarea id="q"></textarea>
-  <div class="samples" id="samples"></div>
-  <button id="go">확인하기</button>
+<div class="tabs" id="tabs">
+  <button data-t="msg" aria-pressed="true" id="tab-msg"></button>
+  <button data-t="acc" aria-pressed="false" id="tab-acc"></button>
+</div>
+
+<div id="pane-msg">
+  <div class="card">
+    <label id="lbl-msg"></label>
+    <textarea id="q"></textarea>
+    <div class="samples" id="samples"></div>
+    <button class="go" id="go-msg"></button>
+  </div>
+</div>
+
+<div id="pane-acc" class="hide">
+  <div class="card">
+    <label id="lbl-case"></label>
+    <div class="opts" id="cases"></div>
+  </div>
+  <div class="card">
+    <label id="lbl-who"></label>
+    <div class="opts" id="whos"></div>
+  </div>
+  <div class="card">
+    <label id="lbl-extra"></label>
+    <textarea id="extra" class="small"></textarea>
+    <button class="go" id="go-acc"></button>
+  </div>
 </div>
 
 <div id="out"></div>
@@ -91,110 +127,161 @@
 <footer id="foot"></footer>
 
 <script>
-const T = {
-  ko:{
-    tag:"응답하기 전에 먼저 확인하세요",
-    lbl:"받은 문자나 제안 내용을 그대로 붙여넣으세요",
-    go:"확인하기", loading:"확인하는 중입니다...",
-    samples:["예시 1","예시 2","예시 3"],
-    sig:"확인된 내용", unk:"확인되지 않은 것", act:"지금 할 일", con:"연락처",
-    short:"조금 더 자세히 적어 주세요. 받은 문자 전체를 붙여넣으면 더 정확합니다.",
-    fail:"확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
-    foot:["이 결과는 참고용이며 사기 여부를 확정하지 않습니다.",
-          "법률 자문이나 금융상품 권유가 아니며, 체류자격에 관한 공식 판단도 아닙니다.",
-          "입력한 내용은 저장하지 않으며 처리 후 사라집니다.",
-          "실제 신고와 피해 구제는 공식 기관을 통해야 합니다. 이미 송금했다면 지체 없이 112 또는 1332에 연락하세요."]
+var T = {
+ko:{
+  tag:"응답하기 전에 먼저 확인하세요",
+  tabMsg:"받은 문자 확인",
+  tabAcc:"계좌를 빌려달라는 부탁",
+  lblMsg:"받은 문자나 제안 내용을 그대로 붙여넣으세요",
+  lblCase:"지금 어떤 상황인가요",
+  lblWho:"누가 부탁했나요",
+  lblExtra:"더 알려주실 내용이 있으면 적어주세요 (선택)",
+  go:"확인하기", loading:"확인하는 중입니다...",
+  samples:["예시 1","예시 2","예시 3"],
+  sig:"확인된 내용", unk:"확인되지 않은 것", act:"지금 할 일", con:"연락처",
+  cons:"응하면 실제로 생기는 일", keep:"반드시 보관할 것",
+  needCase:"먼저 상황을 골라 주세요.",
+  short:"조금 더 자세히 적어 주세요. 받은 문자 전체를 붙여넣으면 더 정확합니다.",
+  fail:"확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+  vRISK:"확인된 위험 신호", vUNKNOWN:"확인 불가", vNORMAL:"정상 범위",
+  cases:{
+    lend_account:"통장이나 카드를 빌려달라는 부탁을 받았다. 아직 넘기지 않았다.",
+    already_lent:"이미 통장이나 카드, 비밀번호를 넘겼다.",
+    cash_job:"돈을 인출해 전달하거나 환전을 도와주는 일을 제안받았다.",
+    id_copy:"신분증이나 외국인등록증 사본을 보내달라고 한다.",
+    money_moved:"내 계좌에 모르는 돈이 들어왔거나 그 돈을 옮겼다."
   },
-  en:{
-    tag:"Check before you respond",
-    lbl:"Paste the message or offer you received",
-    go:"Check", loading:"Checking...",
-    samples:["Sample 1","Sample 2","Sample 3"],
-    sig:"What was found", unk:"What could not be confirmed", act:"What to do now", con:"Contacts",
-    short:"Please write a bit more. Pasting the full message gives a better result.",
-    fail:"Could not complete the check. Please try again shortly.",
-    foot:["This result is for reference only and does not confirm fraud.",
-          "It is not legal advice, financial product advice, or an official decision on visa status.",
-          "What you type is not stored and disappears after processing.",
-          "Report through official channels. If you already sent money, call 112 or 1332 immediately."]
+  whos:{
+    friend:"친구나 선배, 아는 사람",
+    online:"온라인에서 만난 사람",
+    job:"구인 광고나 아르바이트 모집",
+    unknown:"밝히기 어렵다"
   },
-  vi:{
-    tag:"Kiem tra truoc khi tra loi",
-    lbl:"Dan tin nhan hoac loi de nghi ban da nhan",
-    go:"Kiem tra", loading:"Dang kiem tra...",
-    samples:["Vi du 1","Vi du 2","Vi du 3"],
-    sig:"Dieu da xac nhan", unk:"Dieu chua xac nhan", act:"Viec can lam ngay", con:"Lien he",
-    short:"Vui long viet chi tiet hon. Dan toan bo tin nhan se chinh xac hon.",
-    fail:"Khong the kiem tra. Vui long thu lai sau.",
-    foot:["Ket qua nay chi de tham khao va khong khang dinh day la lua dao.",
-          "Day khong phai tu van phap ly, tu van san pham tai chinh hay quyet dinh chinh thuc ve tu cach luu tru.",
-          "Noi dung ban nhap khong duoc luu va se bien mat sau khi xu ly.",
-          "Hay bao cao qua co quan chinh thuc. Neu da chuyen tien, goi ngay 112 hoac 1332."]
+  foot:["이 결과는 참고용이며 사기 여부를 확정하지 않습니다.",
+        "법률 자문이나 금융상품 권유가 아니며, 체류자격에 관한 공식 판단도 아닙니다.",
+        "입력한 내용은 저장하지 않으며 처리 후 사라집니다.",
+        "실제 신고와 피해 구제는 공식 기관을 통해야 합니다. 이미 송금했다면 지체 없이 112 또는 1332에 연락하세요."]
+},
+en:{
+  tag:"Check before you respond",
+  tabMsg:"Check a message",
+  tabAcc:"Someone asked for my account",
+  lblMsg:"Paste the message or offer you received",
+  lblCase:"What is your situation right now?",
+  lblWho:"Who asked you?",
+  lblExtra:"Anything else you want to add (optional)",
+  go:"Check", loading:"Checking...",
+  samples:["Sample 1","Sample 2","Sample 3"],
+  sig:"What was found", unk:"What could not be confirmed", act:"What to do now", con:"Contacts",
+  cons:"What actually happens if you agree", keep:"What you must keep",
+  needCase:"Please choose your situation first.",
+  short:"Please write a bit more. Pasting the full message gives a better result.",
+  fail:"Could not complete the check. Please try again shortly.",
+  vRISK:"Risk signals found", vUNKNOWN:"Cannot determine", vNORMAL:"No known risk signals",
+  cases:{
+    lend_account:"Someone asked to borrow my bankbook or card. I have not handed it over yet.",
+    already_lent:"I already handed over my bankbook, card, or password.",
+    cash_job:"I was offered work withdrawing or delivering cash, or helping with currency exchange.",
+    id_copy:"Someone asked me to send a copy of my ID or alien registration card.",
+    money_moved:"Money I do not recognize arrived in my account, or I moved that money."
   },
-  zh:{
-    tag:"回复之前先确认",
-    lbl:"请粘贴您收到的短信或提议内容",
-    go:"确认", loading:"确认中...",
-    samples:["示例 1","示例 2","示例 3"],
-    sig:"已确认的内容", unk:"无法确认的内容", act:"现在该做的事", con:"联系方式",
-    short:"请写得更详细一些。粘贴完整短信会更准确。",
-    fail:"无法完成确认，请稍后再试。",
-    foot:["本结果仅供参考，并不确定是否为诈骗。",
-          "这不是法律咨询、金融产品推荐，也不是关于居留资格的官方判断。",
-          "您输入的内容不会被保存，处理后即消失。",
-          "请通过官方机构举报。如果已经汇款，请立即拨打 112 或 1332。"]
-  }
+  whos:{
+    friend:"A friend, senior, or someone I know",
+    online:"Someone I met online",
+    job:"A job ad or part-time recruitment",
+    unknown:"I would rather not say"
+  },
+  foot:["This result is for reference only and does not confirm fraud.",
+        "It is not legal advice, financial product advice, or an official decision on visa status.",
+        "What you type is not stored and disappears after processing.",
+        "Report through official channels. If you already sent money, call 112 or 1332 immediately."]
+},
+vi:{
+  tag:"Kiem tra truoc khi tra loi",
+  tabMsg:"Kiem tra tin nhan",
+  tabAcc:"Co nguoi muon muon tai khoan",
+  lblMsg:"Dan tin nhan hoac loi de nghi ban da nhan",
+  lblCase:"Ban dang o tinh huong nao?",
+  lblWho:"Ai da nho ban?",
+  lblExtra:"Neu co dieu gi muon noi them, hay viet vao day (khong bat buoc)",
+  go:"Kiem tra", loading:"Dang kiem tra...",
+  samples:["Vi du 1","Vi du 2","Vi du 3"],
+  sig:"Dieu da xac nhan", unk:"Dieu chua xac nhan", act:"Viec can lam ngay", con:"Lien he",
+  cons:"Dieu se that su xay ra neu ban dong y", keep:"Nhung thu phai giu lai",
+  needCase:"Vui long chon tinh huong truoc.",
+  short:"Vui long viet chi tiet hon. Dan toan bo tin nhan se chinh xac hon.",
+  fail:"Khong the kiem tra. Vui long thu lai sau.",
+  vRISK:"Phat hien dau hieu rui ro", vUNKNOWN:"Khong the xac dinh", vNORMAL:"Khong thay dau hieu rui ro",
+  cases:{
+    lend_account:"Co nguoi hoi muon so tiet kiem hoac the cua toi. Toi chua dua.",
+    already_lent:"Toi da dua so tiet kiem, the hoac mat khau cho nguoi khac.",
+    cash_job:"Toi duoc de nghi rut tien mat de chuyen giao hoac giup doi tien.",
+    id_copy:"Co nguoi yeu cau toi gui ban sao giay to tuy than hoac the dang ky nguoi nuoc ngoai.",
+    money_moved:"Co khoan tien la vao tai khoan cua toi, hoac toi da chuyen khoan tien do."
+  },
+  whos:{
+    friend:"Ban be, dan anh hoac nguoi quen",
+    online:"Nguoi toi gap tren mang",
+    job:"Quang cao tuyen dung hoac viec lam them",
+    unknown:"Toi khong muon noi ro"
+  },
+  foot:["Ket qua nay chi de tham khao va khong khang dinh day la lua dao.",
+        "Day khong phai tu van phap ly, tu van san pham tai chinh hay quyet dinh chinh thuc ve tu cach luu tru.",
+        "Noi dung ban nhap khong duoc luu va se bien mat sau khi xu ly.",
+        "Hay bao cao qua co quan chinh thuc. Neu da chuyen tien, goi ngay 112 hoac 1332."]
+},
+zh:{
+  tag:"回复之前先确认",
+  tabMsg:"确认收到的短信",
+  tabAcc:"有人要借我的账户",
+  lblMsg:"请粘贴您收到的短信或提议内容",
+  lblCase:"您现在是什么情况？",
+  lblWho:"是谁拜托您的？",
+  lblExtra:"如果还有想补充的内容，请写在这里（选填）",
+  go:"确认", loading:"确认中...",
+  samples:["示例 1","示例 2","示例 3"],
+  sig:"已确认的内容", unk:"无法确认的内容", act:"现在该做的事", con:"联系方式",
+  cons:"如果答应会真正发生的事", keep:"必须保留的东西",
+  needCase:"请先选择您的情况。",
+  short:"请写得更详细一些。粘贴完整短信会更准确。",
+  fail:"无法完成确认，请稍后再试。",
+  vRISK:"发现风险信号", vUNKNOWN:"无法判断", vNORMAL:"未发现风险信号",
+  cases:{
+    lend_account:"有人要借我的存折或银行卡。我还没有交出去。",
+    already_lent:"我已经把存折、银行卡或密码交给别人了。",
+    cash_job:"有人让我取现金转交，或帮忙兑换外币。",
+    id_copy:"有人要我发送身份证或外国人登录证的复印件。",
+    money_moved:"我的账户收到了不明来源的钱，或者我转走了那笔钱。"
+  },
+  whos:{
+    friend:"朋友、前辈或熟人",
+    online:"在网上认识的人",
+    job:"招聘广告或兼职招募",
+    unknown:"不方便说明"
+  },
+  foot:["本结果仅供参考，并不确定是否为诈骗。",
+        "这不是法律咨询、金融产品推荐，也不是关于居留资格的官方判断。",
+        "您输入的内容不会被保存，处理后即消失。",
+        "请通过官方机构举报。如果已经汇款，请立即拨打 112 或 1332。"]
+}
 };
 
-const V = {
-  ko:{RISK:"확인된 위험 신호",UNKNOWN:"확인 불가",NORMAL:"정상 범위"},
-  en:{RISK:"Risk signals found",UNKNOWN:"Cannot determine",NORMAL:"No known risk signals"},
-  vi:{RISK:"Phat hien dau hieu rui ro",UNKNOWN:"Khong the xac dinh",NORMAL:"Khong thay dau hieu rui ro"},
-  zh:{RISK:"发现风险信号",UNKNOWN:"无法判断",NORMAL:"未发现风险信号"}
-};
+var CASE_KEYS = ["lend_account","already_lent","cash_job","id_copy","money_moved"];
+var WHO_KEYS  = ["friend","online","job","unknown"];
 
-const SAMPLES = [
+var SAMPLES = [
   "[국제발신] 검찰청입니다. 귀하 명의 계좌가 대포통장 범죄에 연루되어 조사가 필요합니다. 아래 링크로 접속해 안전계좌로 자산을 이전하십시오.",
   "형, 나 급한데 통장 하나만 빌려줄 수 있어? 환전 일인데 돈만 잠깐 들어왔다 나가는 거야. 하루에 30만원 줄게.",
   "[Web발신] 고객님의 8월 카드 이용대금 명세서가 발행되었습니다. 자세한 내용은 앱에서 확인하실 수 있습니다."
 ];
 
-let lang = "ko";
+var lang = "ko";
+var tab = "msg";
+var pickedCase = null;
+var pickedWho = null;
 
 function t(){ return T[lang]; }
-
-function paint(){
-  const x = t();
-  document.getElementById("tag").textContent = x.tag;
-  document.getElementById("lbl").textContent = x.lbl;
-  document.getElementById("go").textContent = x.go;
-  const s = document.getElementById("samples");
-  s.innerHTML = "";
-  x.samples.forEach(function(label,i){
-    const b = document.createElement("button");
-    b.textContent = label;
-    b.onclick = function(){ document.getElementById("q").value = SAMPLES[i]; };
-    s.appendChild(b);
-  });
-  const f = document.getElementById("foot");
-  f.innerHTML = "";
-  x.foot.forEach(function(line){
-    const p = document.createElement("p");
-    p.textContent = line;
-    f.appendChild(p);
-  });
-}
-
-document.getElementById("langs").addEventListener("click", function(e){
-  const b = e.target.closest("button");
-  if(!b) return;
-  lang = b.dataset.l;
-  Array.prototype.forEach.call(document.querySelectorAll("#langs button"), function(x){
-    x.setAttribute("aria-pressed", x === b ? "true" : "false");
-  });
-  document.getElementById("out").innerHTML = "";
-  paint();
-});
+function $(id){ return document.getElementById(id); }
 
 function esc(s){
   return String(s == null ? "" : s).replace(/[<>&]/g, function(c){
@@ -202,84 +289,184 @@ function esc(s){
   });
 }
 
-function note(text, bad){
-  document.getElementById("out").innerHTML =
-    '<div class="card"><p class="msg' + (bad ? " bad" : "") + '">' + esc(text) + '</p></div>';
+function buildOpts(holderId, keys, dict, picked, onPick){
+  var box = $(holderId);
+  box.innerHTML = "";
+  keys.forEach(function(k){
+    var b = document.createElement("button");
+    b.textContent = dict[k];
+    b.setAttribute("aria-pressed", picked === k ? "true" : "false");
+    b.onclick = function(){ onPick(k); };
+    box.appendChild(b);
+  });
 }
 
-function render(d){
-  const x = t();
-  let h = "";
+function paint(){
+  var x = t();
+  $("tag").textContent = x.tag;
+  $("tab-msg").textContent = x.tabMsg;
+  $("tab-acc").textContent = x.tabAcc;
+  $("lbl-msg").textContent = x.lblMsg;
+  $("lbl-case").textContent = x.lblCase;
+  $("lbl-who").textContent = x.lblWho;
+  $("lbl-extra").textContent = x.lblExtra;
+  $("go-msg").textContent = x.go;
+  $("go-acc").textContent = x.go;
 
-  h += '<div class="verdict v-' + esc(d.verdict) + '">'
-     + '<h2>' + esc((V[lang] || V.ko)[d.verdict] || d.verdict) + '</h2>'
-     + '<p>' + esc(d.headline || d.summary || "") + '</p></div>';
+  var s = $("samples");
+  s.innerHTML = "";
+  x.samples.forEach(function(label, i){
+    var b = document.createElement("button");
+    b.textContent = label;
+    b.onclick = function(){ $("q").value = SAMPLES[i]; };
+    s.appendChild(b);
+  });
+
+  buildOpts("cases", CASE_KEYS, x.cases, pickedCase, function(k){
+    pickedCase = k; paint();
+  });
+  buildOpts("whos", WHO_KEYS, x.whos, pickedWho, function(k){
+    pickedWho = k; paint();
+  });
+
+  var f = $("foot");
+  f.innerHTML = "";
+  x.foot.forEach(function(line){
+    var p = document.createElement("p");
+    p.textContent = line;
+    f.appendChild(p);
+  });
+}
+
+$("langs").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if(!b) return;
+  lang = b.dataset.l;
+  Array.prototype.forEach.call(document.querySelectorAll("#langs button"), function(x){
+    x.setAttribute("aria-pressed", x === b ? "true" : "false");
+  });
+  $("out").innerHTML = "";
+  paint();
+});
+
+$("tabs").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if(!b) return;
+  tab = b.dataset.t;
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(x){
+    x.setAttribute("aria-pressed", x === b ? "true" : "false");
+  });
+  $("pane-msg").className = tab === "msg" ? "" : "hide";
+  $("pane-acc").className = tab === "acc" ? "" : "hide";
+  $("out").innerHTML = "";
+});
+
+function note(text, bad){
+  $("out").innerHTML = '<div class="card"><p class="msg' + (bad ? " bad" : "") + '">' + esc(text) + '</p></div>';
+}
+
+function block(title, inner){
+  return '<div class="card"><h3>' + esc(title) + '</h3>' + inner + '</div>';
+}
+
+function listOf(arr, ordered){
+  var tag = ordered ? "ol" : "ul";
+  var h = "<" + tag + ">";
+  arr.forEach(function(a){ h += "<li>" + esc(a) + "</li>"; });
+  return h + "</" + tag + ">";
+}
+
+function contactsOf(arr){
+  var h = "";
+  arr.forEach(function(c){
+    var num = String(c.number || "").replace(/[^0-9-]/g, "");
+    h += '<div class="tel"><span>' + esc(c.name) + '</span>'
+       + '<a href="tel:' + esc(num) + '">' + esc(c.number) + '</a></div>';
+  });
+  return h;
+}
+
+function renderMsg(d){
+  var x = t();
+  var label = x["v" + d.verdict] || d.verdict;
+  var h = '<div class="verdict v-' + esc(d.verdict) + '"><h2>' + esc(label) + '</h2>'
+        + '<p>' + esc(d.headline || d.summary || "") + '</p></div>';
 
   if(d.summary && d.headline && d.summary !== d.headline){
     h += '<div class="card"><p class="msg">' + esc(d.summary) + '</p></div>';
   }
-
   if(d.signals && d.signals.length){
-    h += '<div class="card"><h3>' + esc(x.sig) + '</h3><ul>';
+    var inner = "<ul>";
     d.signals.forEach(function(s){
-      h += '<li>' + esc(s.point) + '<span class="why">' + esc(s.why) + '</span></li>';
+      inner += '<li>' + esc(s.point) + '<span class="why">' + esc(s.why) + '</span></li>';
     });
-    h += '</ul></div>';
+    h += block(x.sig, inner + "</ul>");
   }
+  if(d.unknowns && d.unknowns.length) h += block(x.unk, listOf(d.unknowns, false));
+  if(d.actions && d.actions.length)   h += block(x.act, listOf(d.actions, true));
+  if(d.contacts && d.contacts.length) h += block(x.con, contactsOf(d.contacts));
 
-  if(d.unknowns && d.unknowns.length){
-    h += '<div class="card"><h3>' + esc(x.unk) + '</h3><ul>';
-    d.unknowns.forEach(function(u){ h += '<li>' + esc(u) + '</li>'; });
-    h += '</ul></div>';
-  }
-
-  if(d.actions && d.actions.length){
-    h += '<div class="card"><h3>' + esc(x.act) + '</h3><ol>';
-    d.actions.forEach(function(a){ h += '<li>' + esc(a) + '</li>'; });
-    h += '</ol></div>';
-  }
-
-  if(d.contacts && d.contacts.length){
-    h += '<div class="card"><h3>' + esc(x.con) + '</h3>';
-    d.contacts.forEach(function(c){
-      const num = String(c.number || "").replace(/[^0-9-]/g, "");
-      h += '<div class="tel"><span>' + esc(c.name) + '</span>'
-         + '<a href="tel:' + esc(num) + '">' + esc(c.number) + '</a></div>';
-    });
-    h += '</div>';
-  }
-
-  document.getElementById("out").innerHTML = h;
+  $("out").innerHTML = h;
 }
 
-document.getElementById("go").addEventListener("click", async function(){
-  const x = t();
-  const text = document.getElementById("q").value.trim();
-  const btn = document.getElementById("go");
+function renderAcc(d){
+  var x = t();
+  var h = '<div class="verdict v-RISK"><h2>' + esc(x.vRISK) + '</h2>'
+        + '<p>' + esc(d.headline || "") + '</p></div>';
 
-  if(text.length < 5){ note(x.short); return; }
+  if(d.summary) h += '<div class="card"><p class="msg">' + esc(d.summary) + '</p></div>';
 
+  if(d.consequences && d.consequences.length){
+    var inner = '<dl class="cons">';
+    d.consequences.forEach(function(c){
+      inner += "<dt>" + esc(c.title) + "</dt><dd>" + esc(c.detail) + "</dd>";
+    });
+    h += block(x.cons, inner + "</dl>");
+  }
+  if(d.actions && d.actions.length)   h += block(x.act, listOf(d.actions, true));
+  if(d.keep && d.keep.length)         h += block(x.keep, listOf(d.keep, false));
+  if(d.contacts && d.contacts.length) h += block(x.con, contactsOf(d.contacts));
+
+  $("out").innerHTML = h;
+}
+
+async function send(btn, url, body, onOk){
+  var x = t();
   btn.disabled = true;
+  var old = btn.textContent;
   btn.textContent = x.loading;
   note(x.loading);
-
   try{
-    const res = await fetch("/api/check", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ text: text, lang: lang })
+    var res = await fetch(url, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(body)
     });
-    const d = await res.json();
-
+    var d = await res.json();
     if(d.verdict === "INVALID"){ note(x.short); }
     else if(!res.ok || d.error){ note(x.fail, true); }
-    else { render(d); }
+    else { onOk(d); }
   }catch(e){
     note(x.fail, true);
   }finally{
     btn.disabled = false;
-    btn.textContent = x.go;
+    btn.textContent = old;
   }
+}
+
+$("go-msg").addEventListener("click", function(){
+  var x = t();
+  var text = $("q").value.trim();
+  if(text.length < 5){ note(x.short); return; }
+  send(this, "/api/check", { text:text, lang:lang }, renderMsg);
+});
+
+$("go-acc").addEventListener("click", function(){
+  var x = t();
+  if(!pickedCase){ note(x.needCase); return; }
+  send(this, "/api/account",
+       { "case":pickedCase, who:pickedWho, lang:lang, extra:$("extra").value },
+       renderAcc);
 });
 
 paint();
