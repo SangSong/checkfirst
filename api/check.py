@@ -7,12 +7,42 @@ import os
 import urllib.request
 import urllib.error
 
-MODEL = "gemini-3.6-flash"
-ENDPOINT = (
-    "https://generativelanguage.googleapis.com/v1beta/models/"
-    + MODEL
-    + ":generateContent"
-)
+# 모델이 갑자기 막히는 일에 대비해 여러 개를 순서대로 시도한다.
+# 앞의 것이 안 되면 다음 것으로 넘어간다.
+MODELS = [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+]
+BASE = "https://generativelanguage.googleapis.com/v1beta/models/"
+
+
+def call_model(api_key, body):
+    """모델을 차례로 시도한다. 모두 실패하면 마지막 오류를 돌려준다."""
+    data = json.dumps(body).encode("utf-8")
+    last = None
+    for name in MODELS:
+        req = urllib.request.Request(
+            BASE + name + ":generateContent",
+            data=data,
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": api_key,
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=75) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            last = (e.code, e.read().decode("utf-8", errors="replace"))
+            if e.code in (400, 404, 429, 500, 502, 503):
+                continue
+            raise
+        except urllib.error.URLError as e:
+            last = (502, str(e.reason))
+            continue
+    raise RuntimeError(str(last))
 
 LANGS = {
     "ko": "한국어",
@@ -254,27 +284,14 @@ class handler(BaseHTTPRequestHandler):
                 + text
             )
 
-            payload = json.dumps({
+            result = call_model(api_key, {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
                     "responseMimeType": "application/json",
                     "responseSchema": SCHEMA,
                     "temperature": 0.2,
                 },
-            }).encode("utf-8")
-
-            req = urllib.request.Request(
-                ENDPOINT,
-                data=payload,
-                headers={
-                    "Content-Type": "application/json",
-                    "x-goog-api-key": api_key,
-                },
-                method="POST",
-            )
-
-            with urllib.request.urlopen(req, timeout=90) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
+            })
 
             candidates = result.get("candidates") or []
             if not candidates:
@@ -285,18 +302,15 @@ class handler(BaseHTTPRequestHandler):
             answer = json.loads(parts[0].get("text", "{}"))
             self._send(200, answer)
 
-        except urllib.error.HTTPError as e:
-            detail = e.read().decode("utf-8", errors="replace")
-            self._send(e.code, {"error": "모델 호출 실패: " + detail})
-        except urllib.error.URLError as e:
-            self._send(502, {"error": "외부 연결 실패: " + str(e.reason)})
+        except RuntimeError as e:
+            self._send(502, {"error": "모델 호출 실패: " + str(e)})
         except json.JSONDecodeError:
             self._send(502, {"error": "결과 형식을 읽지 못했습니다. 다시 시도해 주세요."})
         except Exception as e:
             self._send(500, {"error": str(e)})
 
     def do_GET(self):
-        self._send(200, {"status": "ok", "model": MODEL})
+        self._send(200, {"status": "ok", "models": MODELS})
 
     def _send(self, status, obj):
         payload = json.dumps(obj, ensure_ascii=False).encode("utf-8")
